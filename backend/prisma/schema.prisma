@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FARMER
+  BUYER
+}
+
+enum InteractionType {
+  VIEW
+  CONTACT
+  BOOKMARK
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  role        UserRole
+  fullName    String
+  phoneNumber String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  profile         UserProfile?
+  produceListings ProduceListing[]
+  buyerInteractions    Interaction[] @relation("BuyerInteractions")
+  farmerInteractions   Interaction[] @relation("FarmerInteractions")
+  preferences     UserPreference?
+
+  @@map("users")
+}
+
+model UserProfile {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  location String?
+  farmSize Float?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model ProduceListing {
+  id           String   @id @default(cuid())
+  farmerId     String
+  cropType     String
+  quantity     Float
+  unit         String
+  pricePerUnit Float
+  harvestDate  DateTime
+  location     String
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  farmer       User          @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  interactions Interaction[]
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  categoryId   String?
+
+  // Indexes for better query performance
+  @@index([farmerId])
+  @@index([cropType])
+  @@index([location])
+  @@index([isActive])
+  @@index([harvestDate])
+  @@map("produce_listings")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  listings ProduceListing[]
+
+  @@map("categories")
+}
+
+model Location {
+  id       String  @id @default(cuid())
+  county   String
+  region   String?
+  isActive Boolean @default(true)
+
+  @@unique([county, region])
+  @@map("locations")
+}
+
+model Interaction {
+  id        String          @id @default(cuid())
+  buyerId   String
+  farmerId  String
+  listingId String
+  type      InteractionType
+  metadata  Json?           // Store additional interaction data
+  createdAt DateTime        @default(now())
+
+  // Relations
+  buyer   User           @relation("BuyerInteractions", fields: [buyerId], references: [id], onDelete: Cascade)
+  farmer  User           @relation("FarmerInteractions", fields: [farmerId], references: [id], onDelete: Cascade)
+  listing ProduceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([buyerId])
+  @@index([farmerId])
+  @@index([listingId])
+  @@index([type])
+  @@map("interactions")
+}
+
+model UserPreference {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  searchFilters Json?    // Store search filters as JSON
+  savedListings String[] // Array of listing IDs
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
