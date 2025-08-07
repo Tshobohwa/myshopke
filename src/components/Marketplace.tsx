@@ -27,8 +27,8 @@ const Marketplace = () => {
   const [isAddingListing, setIsAddingListing] = useState(false);
   const [locations, setLocations] = useState(kenyanLocations);
   const [categories, setCategories] = useState(cropDatabase);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [totalPages, setTotalPages] = useState(1);
   const hasInitialized = useRef(false);
 
   // API hooks
@@ -55,9 +55,7 @@ const Marketplace = () => {
   });
 
   const cropTypes = categories.map(crop => crop.name);
-  const locationNames = locations.map(loc => loc.name);
-  console.log(locations)
-  console.log(locationNames)
+  const locationNames = locations.map(loc => loc.county);
   const units = ["kg", "bags (50kg)", "bags (90kg)", "tons", "pieces", "bunches", "crates"];
   const priceUnits = ["KSh/kg", "KSh/piece", "KSh/bunch", "KSh/bag", "KSh/crate"];
 
@@ -89,8 +87,8 @@ const Marketplace = () => {
         const response = await listingsRequest.execute(params);
         if (response && typeof response === 'object' && 'listings' in response) {
           setListings(response.listings as EnhancedListing[]);
-          setCurrentPage((response as { page?: number }).page || 1);
-          setTotalPages((response as { totalPages?: number }).totalPages || 1);
+          // setCurrentPage((response as { page?: number }).page || 1);
+          // setTotalPages((response as { totalPages?: number }).totalPages || 1);
         }
       } catch (error) {
         console.warn('Failed to load initial data, using fallback');
@@ -99,7 +97,7 @@ const Marketplace = () => {
     };
 
     loadInitialData();
-  }, []); // Empty dependency array - only run once
+  }, [locationsRequest, categoriesRequest, listingsRequest]); // Include dependencies
 
   // // Reload listings when filters change
   // useEffect(() => {
@@ -148,8 +146,20 @@ const Marketplace = () => {
       return;
     }
 
+    // Validate required fields
+    if (!newListing.crop || !newListing.quantity || !newListing.price ||
+      !newListing.harvestDate || !newListing.location) {
+      toast({
+        title: "Missing Required Fields",
+        description: "Please fill in all required fields: crop type, quantity, price, harvest date, and location.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const listingData = {
+        farmerId: user.id, // Add the required farmerId
         cropType: newListing.crop,
         quantity: parseFloat(newListing.quantity),
         unit: newListing.unit,
@@ -193,8 +203,8 @@ const Marketplace = () => {
         const refreshResponse = await listingsRequest.execute(params);
         if (refreshResponse && typeof refreshResponse === 'object' && 'listings' in refreshResponse) {
           setListings(refreshResponse.listings as EnhancedListing[]);
-          setCurrentPage((refreshResponse as { page?: number }).page || 1);
-          setTotalPages((refreshResponse as { totalPages?: number }).totalPages || 1);
+          // setCurrentPage((refreshResponse as { page?: number }).page || 1);
+          // setTotalPages((refreshResponse as { totalPages?: number }).totalPages || 1);
         }
 
         toast({
@@ -212,6 +222,7 @@ const Marketplace = () => {
     if (isAuthenticated && user?.role === 'BUYER') {
       try {
         await saveInteractionRequest.execute({
+          buyerId: user.id,
           listingId,
           type: 'CONTACT',
           metadata: { contactType: type, crop, farmerName }
@@ -293,8 +304,8 @@ const Marketplace = () => {
                 <form onSubmit={handleAddListing} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="crop">Crop Type</Label>
-                      <Select value={newListing.crop} onValueChange={(value) => setNewListing({ ...newListing, crop: value })}>
+                      <Label htmlFor="crop">Crop Type *</Label>
+                      <Select value={newListing.crop} onValueChange={(value) => setNewListing({ ...newListing, crop: value })} required>
                         <SelectTrigger>
                           <SelectValue placeholder="Select crop" />
                         </SelectTrigger>
@@ -306,13 +317,15 @@ const Marketplace = () => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="quantity">Quantity</Label>
+                      <Label htmlFor="quantity">Quantity *</Label>
                       <Input
                         type="number"
                         placeholder="e.g., 100"
                         value={newListing.quantity}
                         onChange={(e) => setNewListing({ ...newListing, quantity: e.target.value })}
                         required
+                        min="0.1"
+                        step="0.1"
                       />
                     </div>
                   </div>
@@ -332,13 +345,15 @@ const Marketplace = () => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="price">Price</Label>
+                      <Label htmlFor="price">Price *</Label>
                       <Input
                         type="number"
                         placeholder="e.g., 100"
                         value={newListing.price}
                         onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
                         required
+                        min="0.1"
+                        step="0.1"
                       />
                     </div>
                   </div>
@@ -358,8 +373,8 @@ const Marketplace = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="location">County</Label>
-                    <Select value={newListing.location} onValueChange={(value) => setNewListing({ ...newListing, location: value })}>
+                    <Label htmlFor="location">County *</Label>
+                    <Select value={newListing.location} onValueChange={(value) => setNewListing({ ...newListing, location: value })} required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select county" />
                       </SelectTrigger>
@@ -381,7 +396,7 @@ const Marketplace = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="harvestDate">Harvest Date</Label>
+                    <Label htmlFor="harvestDate">Harvest Date *</Label>
                     <Input
                       type="date"
                       value={newListing.harvestDate}

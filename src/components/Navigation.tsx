@@ -46,13 +46,13 @@ const Navigation = ({ currentPage }: NavigationProps) => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-24 md:h-28 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <img
               src="/myshopke.png"
               alt="MyShopKE - Agricultural Marketplace"
-              className="h-16 w-auto"
+              className="h-16 w-auto transform scale-[1.95] origin-left"
             />
           </Link>
 
@@ -80,7 +80,7 @@ const Navigation = ({ currentPage }: NavigationProps) => {
                     <img
                       src="/myshopke.png"
                       alt="MyShopKE - Agricultural Marketplace"
-                      className="h-12 w-auto"
+                      className="h-12 w-auto transform scale-[1.95] origin-left"
                     />
                   </div>
                   <nav className="flex flex-col space-y-2">

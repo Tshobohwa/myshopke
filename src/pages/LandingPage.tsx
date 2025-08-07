@@ -44,7 +44,7 @@ const LandingPage = () => {
               asChild
               size="lg"
               variant="outline"
-              className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-primary"
+              className="text-lg px-8 py-3 border-white hover:bg-white text-primary"
             >
               <Link to="/marketplace" className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -236,7 +236,7 @@ const LandingPage = () => {
               asChild
               size="lg"
               variant="outline"
-              className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-primary"
+              className="text-lg px-8 py-3 border-white hover:bg-white text-primary"
             >
               <Link to="/marketplace" className="flex items-center gap-2">
                 Explore Marketplace

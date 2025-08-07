@@ -23,12 +23,13 @@
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@/lib/*": ["lib/*"]
     },
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "api/**/*", "lib/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
